@@ -9,7 +9,6 @@
 
 #customers td,
 #customers th {
-  /* border: 1px solid #ddd; */
   padding: 10px;
 }
 
@@ -125,7 +124,7 @@ button:disabled {
 }
 
 .post {
-  flex: 0 0 calc(20% - 16px); /* 20% width for 5 divs per row with 16px gap */
+  flex: 0 0 calc(20% - 15px);
   box-sizing: border-box;
   padding: 16px;
   border: 1px solid #ddd;
@@ -133,6 +132,7 @@ button:disabled {
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 @media screen and (max-width: 600px) {
@@ -143,9 +143,8 @@ button:disabled {
 
 .link {
   color: #4da1fa;
-  border: 1px solid #4da1fa;
   text-decoration: none;
-  padding: 10px;
+  padding: 5px;
 }
 
 .button {

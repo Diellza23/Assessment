@@ -32,7 +32,7 @@ const UserList = () => {
     const [sortKey, setSortKey] = useState<keyof UserInfo | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-
+    //Pagination Logic
     const previousPage = () => {
         if (activePage !== 1) {
             setActivePage(activePage - 1);
@@ -57,6 +57,17 @@ const UserList = () => {
             [attribute]: e.target.value,
         });
     };
+
+    // Get all posts
+    const getUserPosts = async (id: number) => {
+        try {
+            await getUserDataById(id);
+            history(`/user-posts/${id}`);
+        } catch (error) {
+            setError(error)
+        }
+    };
+
 
     // This method filters based on filteredData length since there are 10 users per page and when the user is found on the original data array >
     //it sets the activePage and displays the found user
@@ -88,6 +99,17 @@ const UserList = () => {
         getUserInfo()
     }, [])
 
+
+    const handleSort = (key: keyof UserInfo) => {
+        if (sortKey === key) {
+            setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortKey(key);
+            setSortOrder('asc');
+        }
+    };
+
+    //Function to sort data
     useEffect(() => {
         const sortedData = [...data].sort((a, b) => {
             if (sortKey && sortKey in a && sortKey in b) {
@@ -103,24 +125,6 @@ const UserList = () => {
         return <>Some Error fetching data occurred</>
     }
 
-
-    const getUserPosts = async (id: number) => {
-        try {
-            await getUserDataById(id);
-            history(`/user-posts/${id}`);
-        } catch (error) {
-            setError(error)
-        }
-    };
-
-    const handleSort = (key: keyof UserInfo) => {
-        if (sortKey === key) {
-            setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
-        } else {
-            setSortKey(key);
-            setSortOrder('asc');
-        }
-    };
 
     return (
         <>

@@ -36,7 +36,6 @@ const UserPosts: React.FC<Props> = () => {
     return (
         <>
             <Link to='/' className='link'>Back</Link>
-
             <div className='postContainer'>
                 {!loading && posts ? (posts.map((post) => (
                     <div key={post.id} className="post">
