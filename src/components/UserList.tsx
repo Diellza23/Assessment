@@ -13,7 +13,6 @@ interface UserInfo {
     age: number;
 }
 
-
 const UserList = () => {
     const history = useNavigate();
     const [data, setData] = useState<UserInfo[]>([]);
@@ -30,6 +29,9 @@ const UserList = () => {
         lastName: '',
         email: ''
     });
+    const [sortKey, setSortKey] = useState<keyof UserInfo | null>(null);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
 
     const previousPage = () => {
         if (activePage !== 1) {
@@ -86,6 +88,17 @@ const UserList = () => {
         getUserInfo()
     }, [])
 
+    useEffect(() => {
+        const sortedData = [...data].sort((a, b) => {
+            if (sortKey && sortKey in a && sortKey in b) {
+                const comparison = a[sortKey as keyof UserInfo].toString().localeCompare(b[sortKey as keyof UserInfo].toString());
+                return sortOrder === 'asc' ? comparison : -comparison;
+            }
+            return 0;
+        });
+        setFilteredData(sortedData)
+    }, [data, sortKey, sortOrder])
+
     if (error) {
         return <>Some Error fetching data occurred</>
     }
@@ -100,31 +113,83 @@ const UserList = () => {
         }
     };
 
+    const handleSort = (key: keyof UserInfo) => {
+        if (sortKey === key) {
+            setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortKey(key);
+            setSortOrder('asc');
+        }
+    };
+
     return (
         <>
+
             <div className="main">
                 <h2>Users list</h2>
                 {!loading && data ? (
-                    <>
+                    <div style={{ overflowX: 'auto' }}>
                         <table id="customers">
                             <tbody>
                                 <tr>
-                                    <th style={{ color: '#263849', fontWeight: '600' }}>Id</th>
-                                    <th style={{ color: '#263849', fontWeight: '600' }}>Name</th>
-                                    <th style={{ color: '#263849', fontWeight: '600' }}>Last Name</th>
-                                    <th style={{ color: '#263849', fontWeight: '600' }}>Email</th>
-                                    <th style={{ color: '#263849', fontWeight: '600' }}>Details</th>
+                                    <th className="tableHeader">Id</th>
+                                    <th className="tableHeader">Name</th>
+                                    <th className="tableHeader">Last Name</th>
+                                    <th className="tableHeader">Email</th>
+                                    <th className="tableHeader">Details</th>
                                 </tr>
                                 <tr>
                                     <th>#</th>
-                                    <th>
-                                        <input type="text" onChange={(e) => handleInputChange(e, 'firstName')} placeholder="John..." className='inputStyle' />
+                                    <th >
+                                        <div className="inputContainer">
+                                            <input type="text" onChange={(e) => handleInputChange(e, 'firstName')} placeholder="John..." className='inputStyle' />
+                                            {sortKey === 'firstName' && sortOrder === 'asc' ? (
+                                                <svg onClick={() => handleSort('firstName')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-down svg" viewBox="0 0 16 16" >
+                                                    <path fill-rule="evenodd" d="M10.082 5.629 9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371zm1.57-.785L11 2.687h-.047l-.652 2.157z" />
+                                                    <path d="M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z" />
+                                                </svg>
+                                            ) :
+                                                <svg onClick={() => handleSort('firstName')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-up-alt svg" viewBox="0 0 16 16">
+                                                    <path d="M12.96 7H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645z" />
+                                                    <path fill-rule="evenodd" d="M10.082 12.629 9.664 14H8.598l1.789-5.332h1.234L13.402 14h-1.12l-.419-1.371zm1.57-.785L11 9.688h-.047l-.652 2.156z" />
+                                                    <path d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707z" />
+                                                </svg>
+                                            }
+                                        </div>
                                     </th>
                                     <th>
-                                        <input type="text" onChange={(e) => handleInputChange(e, 'lastName')} placeholder="Doe.." className='inputStyle' />
+                                        <div className="inputContainer">
+                                            <input type="text" onChange={(e) => handleInputChange(e, 'lastName')} placeholder="Doe.." className='inputStyle' />
+                                            {sortKey === 'lastName' && sortOrder === 'asc' ? (
+                                                <svg onClick={() => handleSort('lastName')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-down svg" viewBox="0 0 16 16">
+                                                    <path fill-rule="evenodd" d="M10.082 5.629 9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371zm1.57-.785L11 2.687h-.047l-.652 2.157z" />
+                                                    <path d="M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z" />
+                                                </svg>
+                                            ) :
+                                                <svg onClick={() => handleSort('lastName')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-up-alt svg" viewBox="0 0 16 16">
+                                                    <path d="M12.96 7H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645z" />
+                                                    <path fill-rule="evenodd" d="M10.082 12.629 9.664 14H8.598l1.789-5.332h1.234L13.402 14h-1.12l-.419-1.371zm1.57-.785L11 9.688h-.047l-.652 2.156z" />
+                                                    <path d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707z" />
+                                                </svg>
+                                            }
+                                        </div>
                                     </th>
                                     <th>
-                                        <input type="text" onChange={(e) => handleInputChange(e, 'email')} placeholder="@gmail..." className='inputStyle' />
+                                        <div className="inputContainer">
+                                            <input type="text" onChange={(e) => handleInputChange(e, 'email')} placeholder="@gmail..." className='inputStyle' />
+                                            {sortKey === 'email' && sortOrder === 'asc' ? (
+                                                <svg onClick={() => handleSort('email')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-down svg" viewBox="0 0 16 16">
+                                                    <path fill-rule="evenodd" d="M10.082 5.629 9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371zm1.57-.785L11 2.687h-.047l-.652 2.157z" />
+                                                    <path d="M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z" />
+                                                </svg>
+                                            ) :
+                                                <svg onClick={() => handleSort('email')} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" className="bi bi-sort-alpha-up-alt svg" viewBox="0 0 16 16">
+                                                    <path d="M12.96 7H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645z" />
+                                                    <path fill-rule="evenodd" d="M10.082 12.629 9.664 14H8.598l1.789-5.332h1.234L13.402 14h-1.12l-.419-1.371zm1.57-.785L11 9.688h-.047l-.652 2.156z" />
+                                                    <path d="M4.5 13.5a.5.5 0 0 1-1 0V3.707L2.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L4.5 3.707z" />
+                                                </svg>
+                                            }
+                                        </div>
                                     </th>
                                     <th>
                                     </th>
@@ -157,7 +222,7 @@ const UserList = () => {
                             nextPage={nextPage}
                             activePage={activePage}
                         />
-                    </>
+                    </div>
                 ) : (
                     <div className="loading">Loading...</div>
                 )}

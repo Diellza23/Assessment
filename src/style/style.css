@@ -170,8 +170,24 @@ button:disabled {
   border: 1px solid #ddd;
   border-radius: 5px;
   height: 30px;
+  margin-right: 5px;
 }
 
 .loading {
   margin: 0 auto;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+
+.svg {
+  cursor: pointer;
+}
+
+.tableHeader {
+  color: #263849;
+  font-weight: 600;
 }
