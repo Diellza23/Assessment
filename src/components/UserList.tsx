@@ -1,6 +1,8 @@
-import axios from "axios"
 import { useEffect, useState } from "react";
-
+import Pagination from "./Pagination";
+import '../style/style.css'
+import { useNavigate } from 'react-router-dom'
+import { fetchUsersData, getUserDataById } from "../utils/apiCalls";
 
 interface UserInfo {
     id: number;
@@ -11,72 +13,156 @@ interface UserInfo {
     age: number;
 }
 
-const UserList = () => {
 
+const UserList = () => {
+    const history = useNavigate();
     const [data, setData] = useState<UserInfo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<string | null | any>(null)
+    const [activePage, setActivePage] = useState(1);
+    const [usersPerPage] = useState(9);
+    const indexOfLastUser = activePage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const [filteredData, setFilteredData] = useState<UserInfo[]>([]);
+    const currentUsers = filteredData.slice(indexOfFirstUser, indexOfLastUser);
+    const [filterValues, setFilterValues] = useState({
+        firstName: '',
+        lastName: '',
+        email: ''
+    });
 
+    const previousPage = () => {
+        if (activePage !== 1) {
+            setActivePage(activePage - 1);
+        };
+    }
+
+    const nextPage = () => {
+        if (activePage !== Math.ceil(data.length / usersPerPage)) {
+            setActivePage(activePage + 1);
+        }
+    }
+
+    const paginate = (pageNum: number) => {
+        setActivePage(pageNum);
+    }
+
+    // Create a simple function to handle all the filtering for all the attributes 
+    //without having to create a function for each attribute
+    const handleInputChange = (e: any, attribute: any) => {
+        setFilterValues({
+            ...filterValues,
+            [attribute]: e.target.value,
+        });
+    };
+
+    // This method filters based on filteredData length since there are 10 users per page and when the user is found on the original data array >
+    //it sets the activePage and displays the found user
     useEffect(() => {
-        const fetchUsersData = async () => {
+        const filterUsers = data.filter(user => {
+            const firstNameMatch = user.firstName.toLowerCase().includes(filterValues.firstName.toLowerCase());
+            const lastNameMatch = user.lastName.toLowerCase().includes(filterValues.lastName.toLowerCase());
+            const emailMatch = user.email.toLowerCase().includes(filterValues.email.toLowerCase());
+            return firstNameMatch && lastNameMatch && emailMatch;
+        });
+
+        setFilteredData(filterUsers);
+        setActivePage(1);
+    }, [data, filterValues]);
+
+
+    // API to retrieve users
+    useEffect(() => {
+        const getUserInfo = async () => {
             try {
-                await axios.get('https://dummyjson.com/users').then(res => {
-                    setData(res.data.users);
-                    // return data;
-                })
-            }
-            catch (error) {
-                setError("Error fetching userss data");
+                await fetchUsersData().then(res => setData(res))
+            } catch (error) {
+                setError(error)
             } finally {
                 setLoading(false);
             }
         }
-        fetchUsersData()
+
+        getUserInfo()
     }, [])
 
     if (error) {
         return <>Some Error fetching data occurred</>
     }
 
-    const getUserDataById = async (id: number) => {
+
+    const getUserPosts = async (id: number) => {
         try {
-            await axios.get(`https://dummyjson.com/posts?id=${id}`).then((post) => {
-                const userPost = post.data;
-                console.log(userPost, 'user post')
-            })
+            await getUserDataById(id);
+            history(`/user-posts/${id}`);
         } catch (error) {
-            console.log(error, "error here")
+            setError(error)
         }
-    }
+    };
 
     return (
-        <div style={{ width: '75%', margin: 'auto' }}>
-            <h2>Users list</h2>
-            <input placeholder="Search..." style={{ float: 'right', marginBottom: '10px' }} />
-            {loading ? <p>Loading</p>
-                :
-                <table id="customers">
-                    <tr>
-                        <th>Name</th>
-                        <th>Lastname</th>
-                        <th>Email</th>
-                        <th>Details</th>
-                    </tr>
-                    {data && data.map((user) => (
-                        <tr>
-                            <td>{user.firstName}</td>
-                            <td>{user.lastName}</td>
-                            <td>{user.email}</td>
-                            <td>
-                                <button onClick={() => getUserDataById(user.id)}>
-                                    User posts
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </table>
-            }
-        </div>
+        <>
+            <div className="main">
+                <h2>Users list</h2>
+                {!loading && data ? (
+                    <>
+                        <table id="customers">
+                            <tbody>
+                                <tr>
+                                    <th style={{ color: '#263849', fontWeight: '600' }}>Id</th>
+                                    <th style={{ color: '#263849', fontWeight: '600' }}>Name</th>
+                                    <th style={{ color: '#263849', fontWeight: '600' }}>Last Name</th>
+                                    <th style={{ color: '#263849', fontWeight: '600' }}>Email</th>
+                                    <th style={{ color: '#263849', fontWeight: '600' }}>Details</th>
+                                </tr>
+                                <tr>
+                                    <th>#</th>
+                                    <th>
+                                        <input type="text" onChange={(e) => handleInputChange(e, 'firstName')} placeholder="John..." className='inputStyle' />
+                                    </th>
+                                    <th>
+                                        <input type="text" onChange={(e) => handleInputChange(e, 'lastName')} placeholder="Doe.." className='inputStyle' />
+                                    </th>
+                                    <th>
+                                        <input type="text" onChange={(e) => handleInputChange(e, 'email')} placeholder="@gmail..." className='inputStyle' />
+                                    </th>
+                                    <th>
+                                    </th>
+                                </tr>
+                                {currentUsers.length === 0 ? (
+                                    <div className="paragraph">No user with these records was found.</div>
+                                ) : currentUsers?.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.id}</td>
+                                        <td>{user.firstName}</td>
+                                        <td>{user.lastName}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            <button className='button'
+                                                onClick={() => getUserPosts(user.id)}
+                                            >
+                                                Posts
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                ))}
+                            </tbody>
+                        </table>
+                        <Pagination
+                            usersPerPage={usersPerPage}
+                            totalUsers={data.length}
+                            paginate={paginate}
+                            previousPage={previousPage}
+                            nextPage={nextPage}
+                            activePage={activePage}
+                        />
+                    </>
+                ) : (
+                    <div className="loading">Loading...</div>
+                )}
+            </div>
+        </>
     )
 }
 
